@@ -35,10 +35,10 @@ class Database:
             return False
         
     def update(self):
-        pass
+        sql_query = """UPDATE student SET nombre=?,fecha_nacimiento=?,rango=? WHERE id=?"""
 
     def delete(self):
-        pass
+        sql_query = """DELETE FROM student WHERE id=?"""
 
 
 

@@ -7,5 +7,7 @@ alumno = data[0]
 
 id, nombre, fecha_nacimiento, rango = alumno
 
+print(data)
+
 for i in alumno:
     print(i)

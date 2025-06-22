@@ -16,22 +16,24 @@ def consulta(page: ft.Page):
         {"nombre": "Sofía López", "edad": 20, "curso": "Química"},
     ]
 
+    students_data = db.fetch_all()
+
     column_table = [
         ft.DataColumn(ft.Text("Seleccionar")),
         ft.DataColumn(ft.Text("Nombre")),
         ft.DataColumn(ft.Text("Edad")),
-        ft.DataColumn(ft.Text("Curso")),
+        ft.DataColumn(ft.Text("Rango")),
     ]
 
     
     rows = []
-    for id,student in enumerate(students_data): # el enumerate es provicional, para ver como se comporta, despues se coloca el id de la base de datos
+    for id, name, age, kyu in students_data: # el enumerate es provicional, para ver como se comporta, despues se coloca el id de la base de datos
         row = ft.DataRow(
             cells=[
                 ft.DataCell(ft.Checkbox(data=id)),
-                ft.DataCell(ft.Text(student["nombre"])),
-                ft.DataCell(ft.Text(str(student["edad"]))),
-                ft.DataCell(ft.Text(student["curso"])),
+                ft.DataCell(ft.Text(name)),
+                ft.DataCell(ft.Text(str(age))),
+                ft.DataCell(ft.Text(kyu)),
             ]
         )
         rows.append(row)

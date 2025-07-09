@@ -1,13 +1,17 @@
-from __future__ import annotations
 import flet as ft
 from . import resources
 from . import models
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app import MyApp
 
 
 def consulta(self: "MyApp" , page: ft.Page):
     
-
+    
     db = models.Database()
+
+    
 
     titulo = ft.Text(value="Consulta",
                      size=30,

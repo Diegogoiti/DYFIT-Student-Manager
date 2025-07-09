@@ -1,38 +1,33 @@
-import flet as ft
+def num_to_cinta(rango) -> str:
+    kyu_to_cinta_map = {
+        # Kyu Enteros
+        1.0: 'Marrón',
+        2.0: 'Marrón',
+        3.0: 'Marrón',
+        4.0: 'Azul oscuro',
+        5.0: 'Azul oscuro',
+        6.0: 'Verde',
+        7.0: 'Naranja',
+        8.0: 'Amarillo',
+        9.0: 'Azul Celeste',
+        10.0: 'Blanco',
 
-def main(page: ft.Page):
-    page.title = "Ejemplo de Tema Flet"
+        # Kyu Flotantes (con ralla según tus ejemplos y las reglas)
+        1.5: 'Marrón',
+        2.5: 'Marrón',  # Manteniendo ralla explícita si la quieres (según última solicitud)
+        3.5: 'Marrón',  # Manteniendo ralla explícita
+        4.5: 'Azul oscuro ralla Marrón',
+        5.5: 'Azul oscuro', # Manteniendo ralla explícita
+        6.5: 'Verde ralla Azul oscuro',
+        7.5: 'Naranja ralla Verde',
+        8.5: 'Amarillo ralla Naranja',
+        9.5: 'Azul Celeste ralla Amarillo',
+        10.5: 'Blanco ralla Azul Celeste'
+    }
 
-    # Estado inicial del tema
-    page.theme_mode = ft.ThemeMode.DARK  # Puedes cambiarlo a LIGHT
+    if rango > 0:
+        return kyu_to_cinta_map.get(rango, "Rango no válido")
+    else:
+        return "Negro"
 
-    # Función para cambiar el tema
-    def switch_theme(e):
-        page.theme_mode = (
-            ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
-        )
-        # Actualizar el icono del botón
-        theme_icon_button.icon = (
-            ft.Icons.SUNNY if page.theme_mode == ft.ThemeMode.DARK else ft.Icons.NIGHTLIGHT_ROUND
-        )
-        page.update()
 
-    # Botón para cambiar el tema
-    theme_icon_button = ft.IconButton(
-        icon=ft.Icons.SUNNY,  # Icono inicial (sol para modo oscuro)
-        on_click=switch_theme,
-        tooltip="Cambiar tema",
-    )
-
-    # Contenido de la página
-    page.add(
-        ft.Row(
-            [
-                ft.Text("¡Hola, mundo!", size=20),
-                theme_icon_button,
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )
-    )
-
-ft.app(target=main)

@@ -1,10 +1,9 @@
+from __future__ import annotations
 import flet as ft
-import core.Views
-import main
 
 
 class sidebar:
-    def __init__(self, app: main.MyApp): # Añade la anotación de tipo para 'page'
+    def __init__(self, app: "MyApp"): # Añade la anotación de tipo para 'page'
         
         
         button_width = 150

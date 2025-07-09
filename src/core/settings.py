@@ -1,1 +1,1 @@
-db_path = r"data\database.db"
+db_path = r"src\data\database.db"

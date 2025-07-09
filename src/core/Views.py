@@ -1,8 +1,11 @@
+from __future__ import annotations
 import flet as ft
 from . import resources
 from . import models
 
-def consulta(page: ft.Page):
+
+def consulta(self: "MyApp" , page: ft.Page):
+    
 
     db = models.Database()
 
@@ -22,19 +25,36 @@ def consulta(page: ft.Page):
         ft.DataColumn(ft.Text("Seleccionar")),
         ft.DataColumn(ft.Text("Nombre")),
         ft.DataColumn(ft.Text("Edad")),
+        ft.DataColumn(ft.Text("Cinturón")),
         ft.DataColumn(ft.Text("Rango")),
     ]
 
     
+
+    """tengo una idea para hacer que con un click largo se edite una celda, ya funciona la seleccion aunque no me gusta el efecto que hace"""
+
+    #checkbox_states = {}
+
+    def toggle_checkbox(e, id):
+        checkbox = self.seleccionado[id]
+        checkbox.value = not checkbox.value
+        checkbox.update()
+
     rows = []
-    for id, name, age, kyu in students_data: # el enumerate es provicional, para ver como se comporta, despues se coloca el id de la base de datos
+    for id, name, age, kyu in students_data:
+        age = resources.calcular_edad(age)
+        checkbox = ft.Checkbox(data=id)
+        self.seleccionado[id] = checkbox
+
         row = ft.DataRow(
             cells=[
-                ft.DataCell(ft.Checkbox(data=id)),
-                ft.DataCell(ft.Text(name)),
-                ft.DataCell(ft.Text(str(age))),
-                ft.DataCell(ft.Text(kyu)),
-            ]
+                ft.DataCell(checkbox),
+                ft.DataCell(ft.Text(name), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                ft.DataCell(ft.Text(str(age)), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                ft.DataCell(ft.Text("test"), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                ft.DataCell(ft.Text(kyu), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+            ],
+            
         )
         rows.append(row)
 
@@ -61,7 +81,7 @@ def consulta(page: ft.Page):
 
 #comienzo de la vista buscar -------------------------------------------------------------
 
-def buscar(page: ft.Page):
+def buscar(self: "MyApp", page: ft.Page):
 
     db = models.Database()
 
@@ -157,7 +177,7 @@ def buscar(page: ft.Page):
 #comienzo de la vista filtrar ----------------------------------------------------
 
 
-def filtrar(page: ft.Page):
+def filtrar(self: "MyApp", page: ft.Page):
     
     db = models.Database()
 

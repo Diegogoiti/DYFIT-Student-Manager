@@ -23,7 +23,7 @@ def consulta(self: "MyApp" , page: ft.Page):
         {"nombre": "Sofía López", "edad": 20, "curso": "Química"},
     ]
 
-    students_data = db.fetch_all()
+    
 
     column_table = [
         ft.DataColumn(ft.Text("Seleccionar")),
@@ -44,9 +44,15 @@ def consulta(self: "MyApp" , page: ft.Page):
         checkbox.value = not checkbox.value
         checkbox.update()
 
+
+    students_data = db.fetch_all()
+
     rows = []
     for id, name, age, kyu in students_data:
         age = resources.calcular_edad(age)
+        cinta = resources.num_to_cinta(kyu)
+        rango = resources.num_to_rango(kyu)
+
         checkbox = ft.Checkbox(data=id)
         self.seleccionado[id] = checkbox
 
@@ -54,9 +60,9 @@ def consulta(self: "MyApp" , page: ft.Page):
             cells=[
                 ft.DataCell(checkbox),
                 ft.DataCell(ft.Text(name), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
-                ft.DataCell(ft.Text(str(age)), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
-                ft.DataCell(ft.Text("test"), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
-                ft.DataCell(ft.Text(kyu), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                ft.DataCell(ft.Text(age), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                ft.DataCell(ft.Text(cinta), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                ft.DataCell(ft.Text(rango), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
             ],
             
         )

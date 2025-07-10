@@ -8,8 +8,8 @@ def comprobar_entero(valor):
     except ValueError:
         return False
     
-def calcular_edad(fecha_de_nacimiento: str) -> int:
-    fecha_nacimiento_dt = dt.datetime.strptime(fecha_de_nacimiento, '%d/%m/%Y')
+def calcular_edad(fecha_de_nacimiento: str) -> str:
+    fecha_nacimiento_dt = dt.datetime.strptime(fecha_de_nacimiento, r'%d/%m/%Y')
     fecha_actual = dt.datetime.now()
 
     # Calcula la diferencia en años
@@ -19,22 +19,22 @@ def calcular_edad(fecha_de_nacimiento: str) -> int:
     if (fecha_actual.month, fecha_actual.day) < (fecha_nacimiento_dt.month, fecha_nacimiento_dt.day):
         edad -= 1
 
-    return edad
+    return str(edad)
 
 
-def num_to_cinta(rango) -> str:
+def num_to_cinta(rango: float) -> str:
     kyu_to_cinta_map = {
         # Kyu Enteros
-        1.0: 'Marrón',
-        2.0: 'Marrón',
-        3.0: 'Marrón',
-        4.0: 'Azul oscuro',
-        5.0: 'Azul oscuro',
-        6.0: 'Verde',
-        7.0: 'Naranja',
-        8.0: 'Amarillo',
-        9.0: 'Azul Celeste',
-        10.0: 'Blanco',
+        1: 'Marrón',
+        2: 'Marrón',
+        3: 'Marrón',
+        4: 'Azul oscuro',
+        5: 'Azul oscuro',
+        6: 'Verde',
+        7: 'Naranja',
+        8: 'Amarillo',
+        9: 'Azul Celeste',
+        10: 'Blanco',
 
         # Kyu Flotantes (con ralla según tus ejemplos y las reglas)
         1.5: 'Marrón',
@@ -54,13 +54,13 @@ def num_to_cinta(rango) -> str:
     else:
         return "Negro"
 
-def num_to_rango(rango) -> str:
-    if isinstance(rango,int) and rango > 0:
-        return f"{rango} Kyu"
-    elif isinstance(rango,float) and rango > 0:
+def num_to_rango(rango: float) -> str:
+    if  rango.is_integer() and rango > 0:
+        return f"{int(rango)} Kyu"
+    elif not rango.is_integer() and rango > 0:
         return f"{int(rango)} Kyu B"
     elif rango <= 0:
-        return f"{abs(rango) +1} Kyu"
+        return f"{abs(rango) +1} Dan"
     return "Rango no válido"
         
-     
+    

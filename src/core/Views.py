@@ -58,7 +58,7 @@ def consulta(self: "MyApp" , page: ft.Page):
                 ft.DataCell(ft.Text(age), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
                 ft.DataCell(ft.Text(cinta), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
                 ft.DataCell(ft.Text(rango), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
-                ft.DataCell(ft.Text(id)),
+                ft.DataCell(ft.Text(id), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
             ],
             
         )
@@ -100,8 +100,8 @@ def buscar(self: "MyApp", page: ft.Page):
             column.controls = [titulo, row_nombre]
             page.update()
             
-        elif selection.value == "Edad":
-            column.controls = [titulo, row_edad]
+        elif selection.value == "Código":
+            column.controls = [titulo, row_codigo]
             page.update()
 
     def metodo():
@@ -109,7 +109,7 @@ def buscar(self: "MyApp", page: ft.Page):
                                 hint_text="seleccione algo...",
                                 options=[
                                     ft.dropdown.Option("Nombre"),
-                                    ft.dropdown.Option("Edad"),
+                                    ft.dropdown.Option("Código"),
                                 ],
                                 text_align=ft.TextAlign.CENTER,
                                 expand=False,
@@ -121,8 +121,8 @@ def buscar(self: "MyApp", page: ft.Page):
     def buscar_nombre(e):
         pass
 
-    def buscar_edad(e):
-        if resources.comprobar_entero(edad.value):
+    def buscar_codigo(e):
+        if resources.comprobar_entero(codigo.value):
             pass
         else:
             boton_edad.color = "red"
@@ -131,8 +131,8 @@ def buscar(self: "MyApp", page: ft.Page):
 
     selection = metodo()
 
-    edad = ft.TextField(label="Edad", hint_text="Ingrese la edad del alumno")
-    boton_edad = ft.ElevatedButton(text="Buscar", on_click=buscar_edad)
+    codigo = ft.TextField(label="Código", hint_text="Ingrese el código del alumno")
+    boton_edad = ft.ElevatedButton(text="Buscar", on_click=buscar_codigo)
 
     nombre = ft.TextField(label="Nombre", hint_text="Ingrese el nombre del alumno")
     boton_nombre = ft.ElevatedButton(text="Buscar", on_click=buscar_nombre)
@@ -148,10 +148,10 @@ def buscar(self: "MyApp", page: ft.Page):
         vertical_alignment=ft.CrossAxisAlignment.START,
         expand=True,)
     
-    row_edad = ft.Row(
+    row_codigo = ft.Row(
         controls=[
             selection,
-            edad,
+            codigo,
             boton_edad
         ],
         alignment=ft.MainAxisAlignment.CENTER,
@@ -204,7 +204,7 @@ def filtrar(self: "MyApp", page: ft.Page):
         selection = ft.Dropdown(label="Buscar por: ",
                                 hint_text="seleccione algo...",
                                 options=[
-                                    ft.dropdown.Option("Nombre"),
+                                    ft.dropdown.Option("cinta"),
                                     ft.dropdown.Option("Edad"),
                                 ],
                                 text_align=ft.TextAlign.CENTER,
@@ -214,10 +214,10 @@ def filtrar(self: "MyApp", page: ft.Page):
                                 
         return selection
         
-    def buscar_nombre(e):
+    def filtrar_cinta(e):
         pass
 
-    def buscar_edad(e):
+    def filtrar_edad(e):
         if resources.comprobar_entero(edad.value):
             pass
         else:
@@ -227,10 +227,10 @@ def filtrar(self: "MyApp", page: ft.Page):
     selection = metodo()
 
     edad = ft.TextField(label="Edad", hint_text="Ingrese la edad del alumno")
-    boton_edad = ft.ElevatedButton(text="Buscar", on_click=buscar_edad)
+    boton_edad = ft.ElevatedButton(text="Buscar", on_click=filtrar_edad)
 
     nombre = ft.TextField(label="Nombre", hint_text="Ingrese el nombre del alumno")
-    boton_nombre = ft.ElevatedButton(text="Buscar", on_click=buscar_nombre)
+    boton_nombre = ft.ElevatedButton(text="Buscar", on_click=filtrar_cinta)
     
 
     row_nombre = ft.Row(
@@ -272,6 +272,9 @@ def filtrar(self: "MyApp", page: ft.Page):
     )
     
     return container
-    
 
+#ingresar-----------------------------------------------------
+    
+def ingresar(self: "MyApp", page: ft.Page):
+    pass
 

@@ -60,7 +60,7 @@ def num_to_rango(rango: float) -> str:
     elif not rango.is_integer() and rango > 0:
         return f"{int(rango)} Kyu B"
     elif rango <= 0:
-        return f"{abs(rango) +1} Dan"
+        return f"{int(abs(rango) +1)} Dan"
     return "Rango no válido"
         
     

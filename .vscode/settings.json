@@ -1,3 +1,12 @@
 {
-    "CodeGPT.apiKey": "CodeGPT Plus Beta"
+    "CodeGPT.apiKey": "CodeGPT Plus Beta",
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "DSM",
+            "database": "${workspaceFolder:DYFIT-Student-Manager-master}/database.db"
+        }
+    ]
 }

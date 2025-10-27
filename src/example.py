@@ -1,5 +1,10 @@
-from core import models
+from core.models import Database
 
-database = models.Database()
+database = Database()
 
-print(database.fetch_all())
+resultado = database.get_by_name("%Diego%")
+
+
+
+
+print(resultado)

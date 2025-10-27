@@ -1,0 +1,4 @@
+terminar buscar
+    necesitamos terminar
+    1. la logica de la ventana para colocar los resultados
+    2. la logica de la base de datos (hay que buscar los resultados directamente desde el modelo con sql, despues lo pasamos con una función a la vista )

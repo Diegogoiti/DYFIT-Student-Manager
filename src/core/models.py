@@ -40,5 +40,10 @@ class Database:
     def delete(self):
         sql_query = """DELETE FROM student WHERE id=?"""
 
+    def get_by_name(self,name: str):
+        self.cur.execute("SELECT * FROM student WHERE nombre LIKE ?",(name,))
+        resultado = self.cur.fetchall()
+        return resultado
+
 
 

@@ -41,9 +41,17 @@ class Database:
         sql_query = """DELETE FROM student WHERE id=?"""
 
     def get_by_name(self,name: str):
-        self.cur.execute("SELECT * FROM student WHERE nombre LIKE ?",(name,))
+        # permite búsqueda parcial usando comodines
+        like = f"%{name}%"
+        self.cur.execute("SELECT * FROM student WHERE nombre LIKE ?", (like,))
         resultado = self.cur.fetchall()
         return resultado
+
+
+    def get_by_id(self, id_: int):
+        # buscar por id (código)
+        self.cur.execute("SELECT * FROM student WHERE id = ?", (id_,))
+        return self.cur.fetchall()
 
 
 

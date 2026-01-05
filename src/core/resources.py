@@ -63,4 +63,56 @@ def num_to_rango(rango: float) -> str:
         return f"{int(abs(rango) +1)} Dan"
     return "Rango no válido"
         
+
+def get_cintas() -> list[str]:
+    """Devuelve una lista ordenada de nombres de cintas disponibles."""
+    # iterar sobre los rangos conocidos para obtener nombres únicos
+    keys = [10.5,10,9.5,9,8.5,8,7.5,7,6.5,6,5.5,5,4.5,4,3.5,3,2.5,2,1.5,1,0]
+    cintas = {num_to_cinta(k) for k in keys}
+    return sorted(cintas)
+
+
+def cinta_has_ralla(cinta: str) -> bool:
+    """Devuelve True si la representación de la cinta indica que tiene 'ralla'."""
+    return "ralla" in (cinta or "")
+
+
+def canonical_color(cinta: str) -> str:
+    """Devuelve el nombre canónico del color en minúsculas según las reglas del sistema.
+    Resultado en el conjunto: 'blanco', 'celeste', 'amarillo', 'naranja', 'verde', 'azul oscuro', 'marron', 'negro'."""
+    s = (cinta or "").lower()
+    if "blanco" in s:
+        return "blanco"
+    if "celeste" in s:
+        return "celeste"
+    if "amarillo" in s:
+        return "amarillo"
+    if "naranja" in s:
+        return "naranja"
+    if "verde" in s:
+        return "verde"
+    if "azul oscuro" in s:
+        return "azul oscuro"
+    # cubrir variantes como 'Azul Celeste' -> 'celeste'
+    if "azul celeste" in s:
+        return "celeste"
+    if "marr" in s:  # 'marrón' o 'marron'
+        return "marron"
+    if "negro" in s:
+        return "negro"
+    return s
+
+
+def get_colors() -> list[str]:
+    """Devuelve los colores en el orden solicitado por el usuario."""
+    return [
+        "blanco",
+        "celeste",
+        "amarillo",
+        "naranja",
+        "verde",
+        "azul oscuro",
+        "marron",
+        "negro",
+    ]
     

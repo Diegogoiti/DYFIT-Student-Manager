@@ -36,6 +36,7 @@ class MyApp:
 
     def set_consulta(self):
         self.update_view(Views.consulta(self, self.page))
+        #print(self.seleccionado)
 
     def set_filtrar(self):
         self.update_view(Views.filtrar(self, self.page))

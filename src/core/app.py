@@ -9,6 +9,9 @@ class MyApp:
     def __init__(self,page : ft.Page):
         self.title = "DYFIT Student Manager"
         self.page = page
+        # set de ids seleccionados (persistente entre vistas)
+        self.selected_ids = set()
+        # dict opcional para referencias a checkbox controls
         self.seleccionado = {}
         self.view = Views.consulta(self, self.page)
         self.sidebar = Sidebar.sidebar(self)
@@ -47,5 +50,11 @@ class MyApp:
     # Agrega los métodos restantes para la barra lateral
     def set_ingresar(self):
         self.update_view(Views.ingresar(self, self.page))
+
+    def set_update(self):
+        self.update_view(Views.actualizar(self, self.page))
+
+    def set_delete(self):
+        self.update_view(Views.borrar(self, self.page))
         
  

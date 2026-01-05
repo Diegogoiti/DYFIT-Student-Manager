@@ -31,14 +31,26 @@ class Database:
             self.cur.execute(sql_query,(nombre, fecha_nacimiento, rango))
             self.con.commit()
             return True
-        except:
+        except Exception:
             return False
         
-    def update(self):
+    def update_by_id(self, id_: int, nombre: str, fecha_nacimiento: FechaFormatoDDMMYYYY, rango: float):
         sql_query = """UPDATE student SET nombre=?,fecha_nacimiento=?,rango=? WHERE id=?"""
+        try:
+            self.cur.execute(sql_query,(nombre, fecha_nacimiento, rango, id_))
+            self.con.commit()
+            return True
+        except Exception:
+            return False
 
-    def delete(self):
+    def delete_by_id(self, id_: int):
         sql_query = """DELETE FROM student WHERE id=?"""
+        try:
+            self.cur.execute(sql_query,(id_,))
+            self.con.commit()
+            return True
+        except Exception:
+            return False
 
     def get_by_name(self,name: str):
         # permite búsqueda parcial usando comodines

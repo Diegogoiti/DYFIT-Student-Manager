@@ -35,11 +35,38 @@ def consulta(self: "MyApp" , page: ft.Page):
     #checkbox_states = {}
 
     def toggle_checkbox(e, id):
-        checkbox = self.seleccionado[id]
-        checkbox.value = not checkbox.value
-        checkbox.update()
+        # obtener control del checkbox si viene del on_change
+        checkbox = None
+        if hasattr(e, "control") and getattr(e.control, "data", None) is not None:
+            checkbox = e.control
+            self.seleccionado[id] = checkbox
+        else:
+            checkbox = self.seleccionado.get(id)
+
+        if id in self.selected_ids:
+            self.selected_ids.remove(id)
+            if checkbox is not None:
+                checkbox.value = False
+                checkbox.update()
+        else:
+            self.selected_ids.add(id)
+            if checkbox is not None:
+                checkbox.value = True
+                checkbox.update()
+        page.update()
         
 
+
+    def reset_selections(e):
+        # desmarca todos los checkboxes guardados y limpia el set de seleccion
+        for _id, checkbox in list(self.seleccionado.items()):
+            try:
+                checkbox.value = False
+                checkbox.update()
+            except Exception:
+                pass
+        self.selected_ids.clear()
+        page.update()
 
     students_data = db.fetch_all()
 
@@ -49,7 +76,7 @@ def consulta(self: "MyApp" , page: ft.Page):
         cinta = resources.num_to_cinta(kyu)
         rango = resources.num_to_rango(kyu)
 
-        checkbox = ft.Checkbox(data=id)
+        checkbox = ft.Checkbox(data=id, value=(id in self.selected_ids), on_change=lambda e, id=id: toggle_checkbox(e, id))
         self.seleccionado[id] = checkbox
 
         row = ft.DataRow(
@@ -75,7 +102,9 @@ def consulta(self: "MyApp" , page: ft.Page):
                        horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
                        expand=True,)
     
-    column.controls = [titulo,table]
+    boton_reiniciar = ft.ElevatedButton(text="Reiniciar selecciones", on_click=reset_selections)
+
+    column.controls = [titulo, ft.Row([boton_reiniciar], alignment=ft.MainAxisAlignment.END), table]
     container=ft.Container(
         column,
         alignment=ft.alignment.top_center,
@@ -442,5 +471,217 @@ def filtrar(self: "MyApp", page: ft.Page):
 #ingresar-----------------------------------------------------
     
 def ingresar(self: "MyApp", page: ft.Page):
-    pass
+    db = models.Database()
+
+    titulo = ft.Text(value="Ingresar alumno", size=30, text_align=ft.TextAlign.CENTER)
+
+    nombre = ft.TextField(label="Nombre", width=250)
+    fecha = ft.TextField(label="Fecha de nacimiento", hint_text="DD/MM/YYYY", width=250)
+
+    # dropdown de cintas + checkbox rallita
+    # el Dropdown es más estrecho para dejar espacio al checkbox al lado
+    cinta_select = ft.Dropdown(label="Cinta", hint_text="Seleccione un color",
+                               options=[ft.dropdown.Option(c.title()) for c in resources.get_colors()],
+                               expand=False,
+                               width=180)
+    con_rallita = ft.Checkbox(label="Con rallita", value=False)
+    dan_field = ft.TextField(label="Dan", hint_text="1", width=80, visible=False)
+
+    mensaje = ft.Text("")
+
+    def on_cinta_change(e):
+        val = (e.control.value or "").strip() if hasattr(e, "control") and getattr(e.control, "value", None) is not None else (cinta_select.value or "")
+        is_negro = val.lower() == "negro"
+        dan_field.visible = is_negro
+        con_rallita.visible = not is_negro
+        dan_field.update()
+        con_rallita.update()
+        page.update()
+
+    cinta_select.on_change = on_cinta_change
+
+    def submit(e):
+        n = (nombre.value or "").strip()
+        f = (fecha.value or "").strip()
+        c = (cinta_select.value or "").strip()
+        ralla = bool(getattr(con_rallita, "value", False))
+        if not n or not f or not c:
+            mensaje.value = "Complete todos los campos"
+            mensaje.color = "red"
+            mensaje.update()
+            return
+        # validar fecha
+        try:
+            _ = resources.calcular_edad(f)  # lanzará si formato inválido
+        except Exception:
+            mensaje.value = "Fecha inválida (DD/MM/YYYY)"
+            mensaje.color = "red"
+            mensaje.update()
+            return
+        # si es negro, usar campo Dan
+        if c.lower() == "negro":
+            d = (dan_field.value or "").strip()
+            if not d or not resources.comprobar_entero(d) or int(d) < 1:
+                mensaje.value = "Ingrese un número de Dan válido (1,2,...)"
+                mensaje.color = "red"
+                mensaje.update()
+                return
+            rv = float(1 - int(d))
+        else:
+            # convertir color+ralla a rango
+            rv = resources.color_ralla_to_range(c.lower(), ralla)
+        ok = db.set(n, f, rv)
+        if ok:
+            mensaje.value = "Alumno ingresado"
+            mensaje.color = "green"
+            mensaje.update()
+            # volver a consulta y refrescar
+            self.update_view(consulta(self, page))
+        else:
+            mensaje.value = "Error al ingresar"
+            mensaje.color = "red"
+            mensaje.update()
+
+    boton = ft.ElevatedButton(text="Ingresar", on_click=submit)
+
+    # alinear el row de cinta dentro de un container del mismo ancho que los campos
+    cinta_row = ft.Container(ft.Row([cinta_select, dan_field, con_rallita], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER), width=250)
+
+    form = ft.Column([titulo, nombre, fecha, cinta_row, boton, mensaje], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+    return ft.Container(form, padding=10, alignment=ft.alignment.top_center, expand=True)
+
+
+def actualizar(self: "MyApp", page: ft.Page):
+    db = models.Database()
+    ids = list(self.selected_ids)
+
+    titulo = ft.Text(value="Actualizar alumno", size=30, text_align=ft.TextAlign.CENTER)
+    mensaje = ft.Text("")
+
+    if len(ids) != 1:
+        info = ft.Text("Seleccione exactamente 1 alumno para actualizar.")
+        boton_volver = ft.ElevatedButton(text="Volver", on_click=lambda e: self.update_view(consulta(self, page)))
+        col = ft.Column([titulo, info, boton_volver, mensaje], spacing=10)
+        return ft.Container(col, padding=10, alignment=ft.alignment.top_center, expand=True)
+
+    id_ = ids[0]
+    row = db.get_by_id(int(id_))
+    if not row:
+        mensaje.value = "Alumno no encontrado"
+        mensaje.color = "red"
+        mensaje.update()
+        return ft.Container(ft.Column([titulo, mensaje]), padding=10, alignment=ft.alignment.top_center, expand=True)
+    id_f, nombre_v, fecha_v, rango_v = row[0]
+
+    nombre = ft.TextField(label="Nombre", value=nombre_v, width=250)
+    fecha = ft.TextField(label="Fecha de nacimiento", value=fecha_v, width=250)
+    # rango como dropdown + checkbox
+    base_color = resources.canonical_color(resources.num_to_cinta(rango_v)).title()
+    has_ralla = resources.cinta_has_ralla(resources.num_to_cinta(rango_v))
+    # dropdown más estrecho para espacio al checkbox
+    cinta_select = ft.Dropdown(label="Cinta", hint_text="Seleccione un color",
+                               options=[ft.dropdown.Option(c.title()) for c in resources.get_colors()],
+                               value=base_color,
+                               expand=False,
+                               width=180)
+    con_rallita = ft.Checkbox(label="Con rallita", value=has_ralla)
+    # dan field, visible sólo si la cinta es Negro
+    dan_field = ft.TextField(label="Dan", hint_text="1", width=80, visible=(base_color.lower()=="negro"))
+
+    def on_cinta_change_update(e):
+        val = (e.control.value or "").strip() if hasattr(e, "control") and getattr(e.control, "value", None) is not None else (cinta_select.value or "")
+        is_negro = val.lower() == "negro"
+        dan_field.visible = is_negro
+        con_rallita.visible = not is_negro
+        dan_field.update()
+        con_rallita.update()
+        page.update()
+
+    cinta_select.on_change = on_cinta_change_update
+
+    def submit(e):
+        n = (nombre.value or "").strip()
+        f = (fecha.value or "").strip()
+        c = (cinta_select.value or "").strip()
+        ralla = bool(getattr(con_rallita, "value", False))
+        if not n or not f or not c:
+            mensaje.value = "Complete todos los campos"
+            mensaje.color = "red"
+            mensaje.update()
+            return
+        try:
+            _ = resources.calcular_edad(f)
+        except Exception:
+            mensaje.value = "Fecha inválida"
+            mensaje.color = "red"
+            mensaje.update()
+            return
+        if c.lower() == "negro":
+            d = (dan_field.value or "").strip()
+            if not d or not resources.comprobar_entero(d) or int(d) < 1:
+                mensaje.value = "Ingrese un número de Dan válido (1,2,...)"
+                mensaje.color = "red"
+                mensaje.update()
+                return
+            rv = float(1 - int(d))
+        else:
+            rv = resources.color_ralla_to_range(c.lower(), ralla)
+        ok = db.update_by_id(int(id_), n, f, rv)
+        if ok:
+            mensaje.value = "Alumno actualizado"
+            mensaje.color = "green"
+            mensaje.update()
+            # refrescar consulta
+            self.update_view(consulta(self, page))
+        else:
+            mensaje.value = "Error al actualizar"
+            mensaje.color = "red"
+            mensaje.update()
+
+    boton = ft.ElevatedButton(text="Actualizar", on_click=submit)
+    cinta_row = ft.Container(ft.Row([cinta_select, dan_field, con_rallita], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER), width=250)
+    col = ft.Column([titulo, nombre, fecha, cinta_row, boton, mensaje], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+    return ft.Container(col, padding=10, alignment=ft.alignment.top_center, expand=True)
+
+
+def borrar(self: "MyApp", page: ft.Page):
+    db = models.Database()
+    ids = list(self.selected_ids)
+
+    titulo = ft.Text(value="Borrar alumnos", size=30, text_align=ft.TextAlign.CENTER)
+
+    if not ids:
+        info = ft.Text("No hay alumnos seleccionados para borrar.")
+        boton_volver = ft.ElevatedButton(text="Volver", on_click=lambda e: self.update_view(consulta(self, page)))
+        return ft.Container(ft.Column([titulo, info, boton_volver]), padding=10, alignment=ft.alignment.top_center, expand=True)
+
+    # mostrar lista resumida
+    rows = db.fetch_all()
+    selected_rows = [r for r in rows if r[0] in ids]
+    lista = ft.Column([ft.Text(f"{r[0]} - {r[1]}") for r in selected_rows])
+
+    mensaje = ft.Text("")
+
+    def confirmar(e):
+        for id_ in ids:
+            db.delete_by_id(int(id_))
+            # eliminar referencias de checkbox si existen
+            if id_ in self.seleccionado:
+                try:
+                    del self.seleccionado[id_]
+                except Exception:
+                    pass
+        # limpiar selección
+        self.selected_ids.clear()
+        mensaje.value = "Alumnos borrados"
+        mensaje.color = "green"
+        mensaje.update()
+        # volver a consulta
+        self.update_view(consulta(self, page))
+
+    boton_confirm = ft.ElevatedButton(text="Confirmar borrado", bgcolor="red", color="white", on_click=confirmar)
+    boton_cancel = ft.ElevatedButton(text="Cancelar", on_click=lambda e: self.update_view(consulta(self, page)))
+
+    col = ft.Column([titulo, lista, ft.Row([boton_confirm, boton_cancel]), mensaje], spacing=10)
+    return ft.Container(col, padding=10, alignment=ft.alignment.top_center, expand=True)
 

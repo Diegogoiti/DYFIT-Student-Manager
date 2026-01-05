@@ -33,19 +33,19 @@ class sidebar:
         self.button_set = ft.ElevatedButton(
             "Ingresar", 
             icon=ft.Icons.DATASET, 
-            on_click=lambda e: print("Botón Ingresar clickeado"), # Mensaje más específico
+            on_click=lambda e: app.set_ingresar(),
             width=button_width
         )
         self.button_update = ft.ElevatedButton(
             "Actualizar", 
             icon=ft.Icons.SYSTEM_UPDATE_ALT, 
-            on_click=lambda e: print("Botón Actualizar clickeado"), # Mensaje más específico
+            on_click=lambda e: app.set_update(),
             width=button_width
         )
         self.button_delete = ft.ElevatedButton(
             "Borrar", 
             icon=ft.Icons.DELETE, 
-            on_click=lambda e: print("Botón Borrar clickeado"), # Mensaje más específico
+            on_click=lambda e: app.set_delete(),
             width=button_width
         )
         

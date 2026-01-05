@@ -116,3 +116,24 @@ def get_colors() -> list[str]:
         "negro",
     ]
     
+
+def color_ralla_to_range(color: str, con_ralla: bool) -> float:
+    """Convierte una combinación color + con_ralla a un valor numérico representativo de rango.
+    No pretende ser exhaustiva; devuelve un valor válido que encaja con los mapeos de `num_to_cinta`.
+    """
+    mapping = {
+        "blanco": 10.0,
+        "celeste": 9.0,
+        "amarillo": 8.0,
+        "naranja": 7.0,
+        "verde": 6.0,
+        "azul oscuro": 5.0,
+        "marron": 1.0,
+        "negro": 0.0,
+    }
+    base = (color or "").lower()
+    val = mapping.get(base, 0.0)
+    if con_ralla and base != "negro":
+        # añadir 0.5 para representar la variante con 'ralla'
+        val = val + 0.5
+    return float(val)

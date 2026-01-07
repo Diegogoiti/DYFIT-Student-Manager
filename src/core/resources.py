@@ -113,10 +113,10 @@ def get_colors() -> list[str]:
         "amarillo",
         "naranja",
         "verde",
-        "azul oscuro",
+        
         "azul oscuro 1",
         "azul oscuro 2",
-        "marron",
+        
         "marron 1",
         "marron 2",
         "marron 3",

@@ -652,12 +652,86 @@ def actualizar(self: "MyApp", page: ft.Page):
     titulo = ft.Text(value="Actualizar alumno", size=30, text_align=ft.TextAlign.CENTER)
     mensaje = ft.Text("")
 
-    if len(ids) != 1:
-        info = ft.Text("Seleccione exactamente 1 alumno para actualizar.")
+    if not ids:
+        info = ft.Text("No hay alumnos seleccionados para actualizar.")
         boton_volver = ft.ElevatedButton(text="Volver", on_click=lambda e: self.update_view(consulta(self, page)))
         col = ft.Column([titulo, info, boton_volver, mensaje], spacing=10)
         return ft.Container(col, padding=10, alignment=ft.alignment.top_center, expand=True)
 
+    # Si hay más de uno seleccionado: permitir sólo actualizar cinturones para todos
+    if len(ids) > 1:
+        info = ft.Text(f"Actualizar cinturón para {len(ids)} alumnos seleccionados.")
+
+        # Dropdown y opciones de cinturón (misma lógica que en ingresar/actualizar)
+        cinta_select = ft.Dropdown(label="Cinta", hint_text="Seleccione un color",
+                                   options=[ft.dropdown.Option(c.title()) for c in resources.get_colors()],
+                                   expand=False,
+                                   width=180)
+        con_rallita = ft.Checkbox(label="Con rallita", value=False)
+        dan_field = ft.TextField(label="Dan", hint_text="1", width=80, visible=False)
+
+        def on_cinta_change_multi(e):
+            val = (e.control.value or "").strip() if hasattr(e, "control") and getattr(e.control, "value", None) is not None else (cinta_select.value or "")
+            is_negro = val.lower() == "negro"
+            dan_field.visible = is_negro
+            con_rallita.visible = not is_negro
+            dan_field.update()
+            con_rallita.update()
+            page.update()
+
+        cinta_select.on_change = on_cinta_change_multi
+
+        def submit_multi(e):
+            c = (cinta_select.value or "").strip()
+            ralla = bool(getattr(con_rallita, "value", False))
+            if not c:
+                mensaje.value = "Seleccione una cinta"
+                mensaje.color = "red"
+                mensaje.update()
+                return
+            if c.lower() == "negro":
+                d = (dan_field.value or "").strip()
+                if not d or not resources.comprobar_entero(d) or int(d) < 1:
+                    mensaje.value = "Ingrese un número de Dan válido (1,2,...)"
+                    mensaje.color = "red"
+                    mensaje.update()
+                    return
+                rv = float(1 - int(d))
+            else:
+                rv = resources.color_ralla_to_range(c.lower(), ralla)
+
+            # aplicar el nuevo rango a todos los ids seleccionados
+            updated = 0
+            for id_ in ids:
+                row = db.get_by_id(int(id_))
+                if not row:
+                    continue
+                nombre_v = row[0][1]
+                fecha_v = row[0][2]
+                ok = db.update_by_id(int(id_), nombre_v, fecha_v, rv)
+                if ok:
+                    updated += 1
+                    # eliminar checkbox guardado si existe para evitar incoherencias
+                    try:
+                        del self.seleccionado[id_]
+                    except Exception:
+                        pass
+            # limpiar selección
+            self.selected_ids.clear()
+
+            mensaje.value = f"Cinturones actualizados: {updated}"
+            mensaje.color = "green"
+            mensaje.update()
+            # refrescar vista
+            self.update_view(consulta(self, page))
+
+        boton = ft.ElevatedButton(text="Actualizar cinturones", on_click=submit_multi)
+        cancelar = ft.ElevatedButton(text="Cancelar", on_click=lambda e: self.update_view(consulta(self, page)))
+        cinta_row = ft.Container(ft.Row([cinta_select, dan_field, con_rallita], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, vertical_alignment=ft.CrossAxisAlignment.CENTER), width=250)
+        col = ft.Column([titulo, info, cinta_row, ft.Row([boton, cancelar]), mensaje], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+        return ft.Container(col, padding=10, alignment=ft.alignment.top_center, expand=True)
+
+    # Si llega hasta aquí, hay exactamente 1 alumno seleccionado: comportamiento previo (editar todo)
     id_ = ids[0]
     row = db.get_by_id(int(id_))
     if not row:

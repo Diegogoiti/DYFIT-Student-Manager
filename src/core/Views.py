@@ -47,12 +47,18 @@ def consulta(self: "MyApp" , page: ft.Page):
             self.selected_ids.remove(id)
             if checkbox is not None:
                 checkbox.value = False
-                checkbox.update()
+                try:
+                    checkbox.update()
+                except AssertionError:
+                    pass
         else:
             self.selected_ids.add(id)
             if checkbox is not None:
                 checkbox.value = True
-                checkbox.update()
+                try:
+                    checkbox.update()
+                except AssertionError:
+                    pass
         page.update()
         
 
@@ -97,6 +103,8 @@ def consulta(self: "MyApp" , page: ft.Page):
         rows=rows,
         expand=True,
     )
+    
+    column_table = ft.Column([table], expand=True, scroll=ft.ScrollMode.AUTO,horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
     column = ft.Column(alignment=ft.MainAxisAlignment.START,
                        horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
@@ -104,7 +112,7 @@ def consulta(self: "MyApp" , page: ft.Page):
     
     boton_reiniciar = ft.ElevatedButton(text="Reiniciar selecciones", on_click=reset_selections)
 
-    column.controls = [titulo, ft.Row([boton_reiniciar], alignment=ft.MainAxisAlignment.END), table]
+    column.controls = [titulo, ft.Row([boton_reiniciar], alignment=ft.MainAxisAlignment.END), column_table]
     container=ft.Container(
         column,
         alignment=ft.alignment.top_center,
@@ -127,11 +135,11 @@ def buscar(self: "MyApp", page: ft.Page):
     
     def on_change(e):
         if selection.value == "Nombre":
-            column.controls = [titulo, row_nombre, results_container]
+            column.controls = [titulo, row_nombre, results_column]
             page.update()
             
         elif selection.value == "Código":
-            column.controls = [titulo, row_codigo, results_container]
+            column.controls = [titulo, row_codigo, results_column]
             page.update()
 
 
@@ -151,29 +159,57 @@ def buscar(self: "MyApp", page: ft.Page):
     )
 
     # contenedor para alinear el DataTable en la parte superior y quitar margen
-    results_container = ft.Container(resultados,
-                                    alignment=ft.alignment.top_center,
-                                    padding=0,
-                                    margin=ft.margin.only(top=0),
+    results_column = ft.Column([resultados],
+                                    horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+                                    scroll=ft.ScrollMode.AUTO,
                                     expand=True)
 
     def actualizar_resultados(rows_data):
+        def toggle_checkbox(e, id):
+            # obtener control del checkbox si viene del on_change
+            checkbox = None
+            if hasattr(e, "control") and getattr(e.control, "data", None) is not None:
+                checkbox = e.control
+                self.seleccionado[id] = checkbox
+            else:
+                checkbox = self.seleccionado.get(id)
+
+            if id in self.selected_ids:
+                self.selected_ids.remove(id)
+                if checkbox is not None:
+                    checkbox.value = False
+                    try:
+                        checkbox.update()
+                    except AssertionError:
+                        pass
+            else:
+                self.selected_ids.add(id)
+                if checkbox is not None:
+                    checkbox.value = True
+                    try:
+                        checkbox.update()
+                    except AssertionError:
+                        pass
+            page.update()
+            
         rows = []
         for id, name, age, kyu in rows_data:
             age = resources.calcular_edad(age)
             cinta = resources.num_to_cinta(kyu)
             rango = resources.num_to_rango(kyu)
 
-            checkbox = ft.Checkbox(data=id)
+            checkbox = ft.Checkbox(data=id, value=(id in self.selected_ids), on_change=lambda e, id=id: toggle_checkbox(e, id))
+            self.seleccionado[id] = checkbox
             row = ft.DataRow(
                 cells=[
                     ft.DataCell(checkbox),
-                    ft.DataCell(ft.Text(name, overflow=ft.TextOverflow.ELLIPSIS, max_lines=1)),
-                    ft.DataCell(ft.Text(age)),
-                    ft.DataCell(ft.Text(cinta)),
-                    ft.DataCell(ft.Text(rango)),
-                    ft.DataCell(ft.Text(id)),
+                    ft.DataCell(ft.Text(name, overflow=ft.TextOverflow.ELLIPSIS, max_lines=1), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(age), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(cinta), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(rango), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(id), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
                 ],
+                
             )
             rows.append(row)
         resultados.rows = rows
@@ -287,6 +323,32 @@ def buscar(self: "MyApp", page: ft.Page):
 
 
 def filtrar(self: "MyApp", page: ft.Page):
+    def toggle_checkbox(e, id):
+            # obtener control del checkbox si viene del on_change
+            checkbox = None
+            if hasattr(e, "control") and getattr(e.control, "data", None) is not None:
+                checkbox = e.control
+                self.seleccionado[id] = checkbox
+            else:
+                checkbox = self.seleccionado.get(id)
+
+            if id in self.selected_ids:
+                self.selected_ids.remove(id)
+                if checkbox is not None:
+                    checkbox.value = False
+                    try:
+                        checkbox.update()
+                    except AssertionError:
+                        pass
+            else:
+                self.selected_ids.add(id)
+                if checkbox is not None:
+                    checkbox.value = True
+                    try:
+                        checkbox.update()
+                    except AssertionError:
+                        pass
+            page.update()
     
     db = models.Database()
 
@@ -309,10 +371,9 @@ def filtrar(self: "MyApp", page: ft.Page):
     )
 
     # contenedor para alinear el DataTable en la parte superior y quitar margen
-    results_container = ft.Container(resultados,
-                                    alignment=ft.alignment.top_center,
-                                    padding=0,
-                                    margin=ft.margin.only(top=0),
+    results_column = ft.Column([resultados],
+                                    horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+                                    scroll=ft.ScrollMode.AUTO,
                                     expand=True)
 
     def actualizar_resultados(rows_data):
@@ -322,16 +383,18 @@ def filtrar(self: "MyApp", page: ft.Page):
             cinta = resources.num_to_cinta(kyu)
             rango = resources.num_to_rango(kyu)
 
-            checkbox = ft.Checkbox(data=id)
+            checkbox = ft.Checkbox(data=id, value=(id in self.selected_ids), on_change=lambda e, id=id: toggle_checkbox(e, id))
+            self.seleccionado[id] = checkbox
             row = ft.DataRow(
                 cells=[
                     ft.DataCell(checkbox),
-                    ft.DataCell(ft.Text(name, overflow=ft.TextOverflow.ELLIPSIS, max_lines=1)),
-                    ft.DataCell(ft.Text(age)),
-                    ft.DataCell(ft.Text(cinta)),
-                    ft.DataCell(ft.Text(rango)),
-                    ft.DataCell(ft.Text(id)),
+                    ft.DataCell(ft.Text(name, overflow=ft.TextOverflow.ELLIPSIS, max_lines=1), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(age), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(cinta), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(rango), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
+                    ft.DataCell(ft.Text(id), on_tap=lambda e, id=id: toggle_checkbox(e, id)),
                 ],
+                
             )
             rows.append(row)
         resultados.rows = rows
@@ -340,11 +403,11 @@ def filtrar(self: "MyApp", page: ft.Page):
 
     def on_change(e):
         if selection.value == "Cinta":
-            column.controls = [titulo, row_cinta, results_container]
+            column.controls = [titulo, row_cinta, results_column]
             page.update()
             
         elif selection.value == "Edad":
-            column.controls = [titulo, row_edad, results_container]
+            column.controls = [titulo, row_edad, results_column]
             page.update()
 
     def metodo():
@@ -380,14 +443,44 @@ def filtrar(self: "MyApp", page: ft.Page):
             resultados.rows = []
             resultados.update()
             return
-        # filtrar por cinta consultando todos y comparando color base y presencia de rallita
+        # filtrar por cinta consultando todos y comparando color base, subnivel (ej. 'marron 2') y presencia de rallita
         rows_all = db.fetch_all()
         filtered = []
+
+        # parsear subopciones tipo 'marron 2' o 'azul oscuro 1'
+        parts = q_norm.split()
+        specific = None
+        base_name = q_norm
+        if parts and parts[-1].isdigit():
+            try:
+                specific = int(parts[-1])
+                base_name = " ".join(parts[:-1]).strip()
+            except Exception:
+                specific = None
+                base_name = q_norm
+
+        # si se solicitó un subnivel explícito, obtener el valor numérico objetivo (respeta rallita)
+        desired_val = None
+        if specific is not None:
+            desired_val = resources.color_ralla_to_range(q_norm, con_ralla)
+
         for r in rows_all:
             cinta = resources.num_to_cinta(r[3])
             base = resources.canonical_color(cinta)
             has_ralla = resources.cinta_has_ralla(cinta)
-            if base == q_norm and (has_ralla if con_ralla else not has_ralla):
+
+            if base != base_name:
+                continue
+
+            # si se pidió un subnivel ('marron 2', 'azul oscuro 1'), comprobar que coincide el rango numérico
+            if desired_val is not None:
+                try:
+                    if abs(float(r[3]) - float(desired_val)) > 1e-6:
+                        continue
+                except Exception:
+                    continue
+
+            if (has_ralla if con_ralla else not has_ralla):
                 filtered.append(r)
         actualizar_resultados(filtered)
 
@@ -480,8 +573,9 @@ def ingresar(self: "MyApp", page: ft.Page):
 
     # dropdown de cintas + checkbox rallita
     # el Dropdown es más estrecho para dejar espacio al checkbox al lado
+    # en Ingresar sólo mostrar subopciones (sin las opciones generales 'marron' y 'azul oscuro')
     cinta_select = ft.Dropdown(label="Cinta", hint_text="Seleccione un color",
-                               options=[ft.dropdown.Option(c.title()) for c in resources.get_colors()],
+                               options=[ft.dropdown.Option(c.title()) for c in resources.get_colors() if c not in ("marron", "azul oscuro")],
                                expand=False,
                                width=180)
     con_rallita = ft.Checkbox(label="Con rallita", value=False)
@@ -576,7 +670,7 @@ def actualizar(self: "MyApp", page: ft.Page):
     nombre = ft.TextField(label="Nombre", value=nombre_v, width=250)
     fecha = ft.TextField(label="Fecha de nacimiento", value=fecha_v, width=250)
     # rango como dropdown + checkbox
-    base_color = resources.canonical_color(resources.num_to_cinta(rango_v)).title()
+    base_color = resources.rango_to_color_option(rango_v).title()
     has_ralla = resources.cinta_has_ralla(resources.num_to_cinta(rango_v))
     # dropdown más estrecho para espacio al checkbox
     cinta_select = ft.Dropdown(label="Cinta", hint_text="Seleccione un color",
